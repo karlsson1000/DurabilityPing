@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "durability-ping",
+	"version": "${version}",
+	"name": "Durability Ping",
+	"description": "Get alerted when your tools and armor are about to break!",
+	"authors": [
+		"karlsson1000"
+	],
+	"license": "MIT",
+	"icon": "assets/durability-ping/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"client": [
+			"org.karlssonsmp.durabilityping.DurabilityPing"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.15.0",
+		"minecraft": ">=1.21.0",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
