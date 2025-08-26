@@ -54,16 +54,12 @@ public class DurabilityPing implements ClientModInitializer {
 			}
 		}
 
-		switch (unbreakingLevel) {
-			case 1:
-				return 0.06;
-			case 2:
-				return 0.04;
-			case 3:
-				return 0.02;
-			default:
-				return DEFAULT_THRESHOLD;
-		}
+        return switch (unbreakingLevel) {
+            case 1 -> 0.06;
+            case 2 -> 0.04;
+            case 3 -> 0.02;
+            default -> DEFAULT_THRESHOLD;
+        };
 	}
 
 	private void checkItem(ItemStack stack, String slot) {
