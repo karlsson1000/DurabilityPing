@@ -9,13 +9,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.karlssonsmp.durabilityping.config.DurabilityPingConfig;
 import java.util.HashSet;
 import java.util.Set;
 
 public class DurabilityPing implements ClientModInitializer {
 
 	private static final int CHECK_INTERVAL = 20; // Every second
-	private static final double DEFAULT_THRESHOLD = 0.10; // Warn at 10%
 
 	private final Set<String> warned = new HashSet<>();
 	private int ticks = 0;
@@ -45,6 +45,7 @@ public class DurabilityPing implements ClientModInitializer {
 	}
 
 	private double getThresholdForItem(ItemStack stack) {
+		DurabilityPingConfig config = DurabilityPingConfig.getInstance();
 		int unbreakingLevel = 0;
 
 		for (var entry : stack.getEnchantments().getEnchantments()) {
@@ -54,12 +55,12 @@ public class DurabilityPing implements ClientModInitializer {
 			}
 		}
 
-        return switch (unbreakingLevel) {
-            case 1 -> 0.06;
-            case 2 -> 0.04;
-            case 3 -> 0.02;
-            default -> DEFAULT_THRESHOLD;
-        };
+		return switch (unbreakingLevel) {
+			case 1 -> config.threshold * 0.6;
+			case 2 -> config.threshold * 0.4;
+			case 3 -> config.threshold * 0.2;
+			default -> config.threshold;
+		};
 	}
 
 	private void checkItem(ItemStack stack, String slot) {
@@ -82,7 +83,11 @@ public class DurabilityPing implements ClientModInitializer {
 		MinecraftClient client = MinecraftClient.getInstance();
 		if (client.player == null) return;
 
-		client.player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1f);
+		DurabilityPingConfig config = DurabilityPingConfig.getInstance();
+
+		if (config.enableSound) {
+			client.player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1f);
+		}
 
 		Text message = Text.literal("⚠ Your " + stack.getName().getString() + " is almost broken!")
 				.formatted(Formatting.RED);

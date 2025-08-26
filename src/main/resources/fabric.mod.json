@@ -13,6 +13,9 @@
 	"entrypoints": {
 		"client": [
 			"org.karlssonsmp.durabilityping.DurabilityPing"
+		],
+		"modmenu": [
+			"org.karlssonsmp.durabilityping.config.ConfigScreen"
 		]
 	},
 	"depends": {
@@ -22,6 +25,6 @@
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"another-mod": "*"
+		"modmenu": ">=11.0.0"
 	}
 }

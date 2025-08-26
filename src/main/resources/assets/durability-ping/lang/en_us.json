@@ -1,0 +1,11 @@
+{
+  "title.durability-ping.config": "Durability Ping Configuration",
+
+  "category.durability-ping.settings": "Settings",
+
+  "option.durability-ping.threshold": "Durability Warn Threshold",
+  "tooltip.durability-ping.threshold": "Warn when item durability falls below this percentage (e.g., 0.10 = 10%)",
+
+  "option.durability-ping.enable_sound": "Enable Warning Sound",
+  "tooltip.durability-ping.enable_sound": "Play a sound when warning about low durability"
+}
