@@ -15,17 +15,13 @@ import java.util.Set;
 
 public class DurabilityPing implements ClientModInitializer {
 
-	private static final int CHECK_INTERVAL = 20; // Every second
-
 	private final Set<String> warned = new HashSet<>();
-	private int ticks = 0;
+	private final int[] previousDamages = new int[6]; // 2 hands + 4 armor slots
 
 	@Override
 	public void onInitializeClient() {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			if (client.player == null || client.world == null || ++ticks < CHECK_INTERVAL) return;
-
-			ticks = 0;
+			if (client.player == null || client.world == null) return;
 			checkDurability(client);
 		});
 	}
@@ -33,15 +29,32 @@ public class DurabilityPing implements ClientModInitializer {
 	private void checkDurability(MinecraftClient client) {
 		if (client.player == null) return;
 
-		// Check hands
-		checkItem(client.player.getMainHandStack(), "mainhand");
-		checkItem(client.player.getOffHandStack(), "offhand");
+		ItemStack[] items = {
+				client.player.getMainHandStack(),
+				client.player.getOffHandStack(),
+				client.player.getEquippedStack(EquipmentSlot.HEAD),
+				client.player.getEquippedStack(EquipmentSlot.CHEST),
+				client.player.getEquippedStack(EquipmentSlot.LEGS),
+				client.player.getEquippedStack(EquipmentSlot.FEET)
+		};
 
-		// Check armor slots
-		checkItem(client.player.getEquippedStack(EquipmentSlot.HEAD), "head");
-		checkItem(client.player.getEquippedStack(EquipmentSlot.CHEST), "chest");
-		checkItem(client.player.getEquippedStack(EquipmentSlot.LEGS), "legs");
-		checkItem(client.player.getEquippedStack(EquipmentSlot.FEET), "feet");
+		String[] slots = {"mainhand", "offhand", "head", "chest", "legs", "feet"};
+
+		for (int i = 0; i < items.length; i++) {
+			ItemStack stack = items[i];
+			if (stack.isEmpty() || !stack.isDamageable()) {
+				previousDamages[i] = 0;
+				continue;
+			}
+
+			int currentDamage = stack.getDamage();
+
+			// Only check if damage has changed
+			if (currentDamage != previousDamages[i]) {
+				previousDamages[i] = currentDamage;
+				checkItem(stack, slots[i]);
+			}
+		}
 	}
 
 	private double getThresholdForItem(ItemStack stack) {
