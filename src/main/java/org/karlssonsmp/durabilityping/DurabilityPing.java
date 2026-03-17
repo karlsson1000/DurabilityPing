@@ -3,9 +3,12 @@ package org.karlssonsmp.durabilityping;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -16,12 +19,21 @@ import java.util.Set;
 public class DurabilityPing implements ClientModInitializer {
 
 	private final Set<String> warned = new HashSet<>();
-	private final int[] previousDamages = new int[6]; // 2 hands + 4 armor slots
+	private final int[] previousDamages = new int[6];
+	private RegistryEntry<Enchantment> unbreakingEntry = null;
 
 	@Override
 	public void onInitializeClient() {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null || client.world == null) return;
+
+			if (unbreakingEntry == null) {
+				unbreakingEntry = client.world.getRegistryManager()
+						.getOrThrow(RegistryKeys.ENCHANTMENT)
+						.getOptional(Enchantments.UNBREAKING)
+						.orElse(null);
+			}
+
 			checkDurability(client);
 		});
 	}
@@ -57,21 +69,17 @@ public class DurabilityPing implements ClientModInitializer {
 		}
 	}
 
+	private int getUnbreakingLevel(ItemStack stack) {
+		if (unbreakingEntry == null) return 0;
+		return stack.getEnchantments().getLevel(unbreakingEntry);
+	}
+
 	private double getThresholdForItem(ItemStack stack) {
 		DurabilityPingConfig config = DurabilityPingConfig.getInstance();
-		int unbreakingLevel = 0;
-
-		for (var entry : stack.getEnchantments().getEnchantments()) {
-			if (entry.matchesKey(Enchantments.UNBREAKING)) {
-				unbreakingLevel = stack.getEnchantments().getLevel(entry);
-				break;
-			}
-		}
-
-		return switch (unbreakingLevel) {
-			case 1 -> config.threshold * 0.6;
-			case 2 -> config.threshold * 0.4;
-			case 3 -> config.threshold * 0.2;
+		return switch (getUnbreakingLevel(stack)) {
+			case 1 -> Math.min(config.threshold * 1.2, 1.0);
+			case 2 -> Math.min(config.threshold * 1.5, 1.0);
+			case 3 -> Math.min(config.threshold * 2.0, 1.0);
 			default -> config.threshold;
 		};
 	}
